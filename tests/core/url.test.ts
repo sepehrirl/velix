@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseVideoUrl } from "../../src/core/url";
+import { parseVideoUrl } from "../../src/core/url.js";
 
 describe("parseVideoUrl", () => {
   it("accepts a public http URL", () => {
