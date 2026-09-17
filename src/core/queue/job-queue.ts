@@ -1,4 +1,4 @@
-import type { Job, JobStatus } from '../jobs/job';
+import type { Job, JobStatus } from '../jobs/job.js';
 
 export class JobQueue {
   private readonly jobs = new Map<string, Job>();
