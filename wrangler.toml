@@ -1,6 +1,4 @@
 name = "velix"
 main = "src/index.ts"
 compatibility_date = "2026-09-17"
-
-[vars]
-# Set TELEGRAM_BOT_TOKEN as a Cloudflare secret; do not commit the token.
+workers_dev = true
