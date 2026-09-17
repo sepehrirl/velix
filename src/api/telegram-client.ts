@@ -8,14 +8,18 @@ type TelegramApiResponse = {
   description?: string;
 };
 
+export interface TelegramClientOptions {
+  apiBaseUrl?: string;
+  fetchImpl?: typeof fetch;
+}
+
 export class TelegramClient {
   private readonly baseUrl: string;
+  private readonly fetchImpl: typeof fetch;
 
-  constructor(
-    private readonly token: string,
-    private readonly fetchImpl: typeof fetch = fetch,
-  ) {
-    this.baseUrl = `https://api.telegram.org/bot${token}`;
+  constructor(private readonly token: string, options: TelegramClientOptions = {}) {
+    this.baseUrl = `${options.apiBaseUrl ?? 'https://api.telegram.org'}/bot${token}`;
+    this.fetchImpl = options.fetchImpl ?? fetch;
   }
 
   async sendMessage(chatId: number, text: string): Promise<TelegramMessageResult> {
