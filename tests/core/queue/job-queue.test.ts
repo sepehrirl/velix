@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { createJob } from '../../../src/core/jobs/job';
-import { JobQueue } from '../../../src/core/queue/job-queue';
+import { createJob } from '../../../src/core/jobs/job.js';
+import { JobQueue } from '../../../src/core/queue/job-queue.js';
 
 describe('JobQueue', () => {
   it('enqueues jobs and dequeues them in FIFO order', () => {
