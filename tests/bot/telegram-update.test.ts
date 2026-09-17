@@ -68,4 +68,8 @@ describe('handleTelegramUpdate', () => {
       text: '🎬 به VELIX خوش اومدی!\nلینک ویدیو رو بفرست تا بررسیش کنیم.',
     });
   });
+
+  it('ignores Telegram updates without a message text', () => {
+    expect(handleTelegramUpdate({ update_id: 4 }, new JobQueue())).toBeUndefined();
+  });
 });
