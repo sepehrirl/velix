@@ -28,6 +28,16 @@ jobs:
       - name: Test
         run: npm test
 
+      - name: Sync Telegram secret
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: |
+          if [ -z "$TELEGRAM_BOT_TOKEN" ]; then
+            echo "TELEGRAM_BOT_TOKEN GitHub secret is missing"
+            exit 1
+          fi
+          printf '%s' "$TELEGRAM_BOT_TOKEN" | npx wrangler@4.123.0 secret put TELEGRAM_BOT_TOKEN --name velix
+
       - name: Deploy to Cloudflare
         uses: cloudflare/wrangler-action@v3
         with:
