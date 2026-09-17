@@ -55,3 +55,49 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           wranglerVersion: '4.123.0'
           command: deploy
+
+      - name: Verify Telegram bot token
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: |
+          response="$(curl -fsS "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getMe")"
+          echo "$response" | grep -q '"ok":true' || {
+            echo "Telegram bot token verification failed"
+            exit 1
+          }
+          echo "Telegram bot token verified"
+
+      - name: Sync and verify Telegram webhook
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: |
+          expected="https://velix.sepehr2sodoury.workers.dev/telegram/webhook"
+          set_response="$(curl -fsS -X POST \
+            "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setWebhook" \
+            -H 'content-type: application/json' \
+            --data "{\"url\":\"${expected}\"}")"
+          echo "$set_response" | grep -q '"ok":true' || {
+            echo "Telegram webhook update failed"
+            exit 1
+          }
+
+          info="$(curl -fsS "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getWebhookInfo")"
+          python - "$info" "$expected" <<'PY'
+          import json
+          import sys
+
+          payload = json.loads(sys.argv[1])
+          expected = sys.argv[2]
+          result = payload.get("result", {})
+          actual = result.get("url", "")
+
+          print(json.dumps({
+              "url": actual,
+              "pending_update_count": result.get("pending_update_count", 0),
+              "last_error_message": result.get("last_error_message"),
+          }, ensure_ascii=False, indent=2))
+
+          if not payload.get("ok") or actual != expected:
+              raise SystemExit("Telegram webhook verification failed")
+          PY
+          echo "Telegram webhook verified"
