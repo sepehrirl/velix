@@ -15,7 +15,12 @@ export default {
     const url = new URL(request.url);
 
     if (request.method === 'GET' && url.pathname === '/health') {
-      return Response.json({ ok: true, service: 'VELIX', version: '0.1.0' });
+      return Response.json({
+        ok: true,
+        service: 'VELIX',
+        version: '0.1.0',
+        telegramConfigured: Boolean(env.TELEGRAM_BOT_TOKEN),
+      });
     }
 
     if (request.method !== 'POST' || url.pathname !== '/telegram/webhook') {
@@ -23,25 +28,43 @@ export default {
     }
 
     if (!env.TELEGRAM_BOT_TOKEN) {
-      return Response.json({ error: 'Telegram bot token is not configured' }, { status: 500 });
+      console.error('Telegram bot token is not configured');
+      return Response.json({ ok: true });
     }
 
     let update: TelegramUpdate;
 
     try {
       update = (await request.json()) as TelegramUpdate;
-    } catch {
-      return Response.json({ error: 'Invalid JSON' }, { status: 400 });
+    } catch (error) {
+      console.error('Invalid Telegram update JSON', error);
+      return Response.json({ ok: true });
     }
 
-    const response = handleTelegramUpdate(update, queue);
+    let response;
 
-    if (response) {
+    try {
+      response = handleTelegramUpdate(update, queue);
+    } catch (error) {
+      console.error('Telegram update handler failed', error);
+      return Response.json({ ok: true });
+    }
+
+    if (!response) {
+      return Response.json({ ok: true });
+    }
+
+    try {
       const telegram = new TelegramClient(env.TELEGRAM_BOT_TOKEN, {
         apiBaseUrl: env.TELEGRAM_API_BASE_URL,
         fetchImpl: env.fetchImpl,
       });
+
       await telegram.sendMessage(response.chatId, response.text);
+    } catch (error) {
+      console.error('Telegram sendMessage failed', error);
+      // Always acknowledge Telegram's webhook request. Telegram retries a 5xx
+      // response, which can otherwise build an ever-growing pending queue.
     }
 
     return Response.json({ ok: true });
