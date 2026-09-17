@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createJob } from '../../../src/core/jobs/job';
+import { createJob } from '../../../src/core/jobs/job.js';
 
 describe('createJob', () => {
   it('creates a queued job with stable timestamps', () => {
