@@ -1,0 +1,1 @@
+{"name":"@velix/bot","version":"1.0.0","type":"module","dependencies":{"@velix/shared":"workspace:*"},"exports":"./src/index.ts"}
